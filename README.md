@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blast Mobile Integration Example (Next.js + Wagmi)
 
-## Getting Started
+This repo provides an example Blast Mobile integration for dapps using Next.js and Wagmi. See below for links to specific files where key topics are demonstrated.
 
-First, run the development server:
+## 1. Including Blast SDK
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+A small library must be included `<head>` of your application to give it access to Blast Mobile's injected provider.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- See [src/app/layout.tsx](src/app/layout.tsx) for an example of how to include this library in your application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 2. Wagmi Config & Auto-Connect
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A number of configuration steps are necessary for your dapp to automatically connect with Blast Mobile's injected provider, enabling you to seamlessly use Wagmi hooks like `useAccount()` within Blast Mobile.
 
-## Learn More
+- See [src/app/wagmiConfig.tsx](src/app/wagmiConfig.tsx) for an example Wagmi configuration
+- See [src/app/providers.tsx](src/app/providers.tsx) for an example `Providers` component to wrap your application and provide Wagmi context to child components.
+- See [src/components/AutoConnectTable.tsx](src/components/AutoConnectTable.tsx) for an example of a component using the provided wagmi context to access the currentl connected account using the `useAccount()` hook.
 
-To learn more about Next.js, take a look at the following resources:
+## 3. Content Security Policy (CSP) Configuration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Within Blast Mobile, your dapp will run inside of an `iframe`. As a result, if you implement a Content Security Policy (CSP) that limits where your dapp can be run within an `iframe`, you must also configure the necessary CSP settings to allow it to run within Blast Mobile.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- See [next.config.ts](next.config.ts) for an example of how to set up such a CSP within Next.js.
 
-## Deploy on Vercel
+## 4. Smart Contract Signing & Verification
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Blast Mobile uses smart contract accounts which have different requirements for message signing and verification from standard EOAs. If your application does any signature verification, it must verify signatures using [EIP-6492](https://eips.ethereum.org/EIPS/eip-6492).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- See [src/components/SignatureVerificationForm.tsx](src/components/SignatureVerificationForm.tsx) for an example demonstrating the signing of an arbitrary message and sending a `POST` request to the back-end for verification using Wagmi.
+- See [src/app/api/verifySignature/route.ts](src/app/api/verifySignature/route.ts) for back-end example of EIP-6492 signature verification with Viem.
+
+## 5. Batching Transactions (EIP-5792)
+
+Blast Mobile supports the batching / bundling of transactions using [EIP-5792](https://eips.ethereum.org/EIPS/eip-5792). We recommend taking advantage of this feature to improve user experience when sending commonly coupled transactions like (1) making a token approval before (2) calling a contract to deposit / transfer funds on behalf of the caller.
+
+This can be most easily accomplished using the EIP-5792 implementations from Viem or Wagmi.
+
+- See [src/components/BatchTransactionForm.tsx](src/components/BatchTransactionForm.tsx) for an example using Wagmi's `useSendCalls()` hook to bundle a token approval and contract call.
