@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "script-src 'self' 'unsafe-inline' https://assets.blast.io; frame-ancestors https:app.blast.io https://*.testblast.io/"
+            value: "script-src 'self' 'unsafe-inline' https://assets.blast.io; frame-ancestors https//:app.blast.io https://*.testblast.io/"
           },
         ],
       },
